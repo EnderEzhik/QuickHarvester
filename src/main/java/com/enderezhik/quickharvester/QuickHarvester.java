@@ -19,6 +19,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -34,29 +35,9 @@ import org.slf4j.Logger;
 @Mod(QuickHarvester.MOD_ID)
 public final class QuickHarvester {
     public static final String MOD_ID = "quickharvester";
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     public QuickHarvester(FMLJavaModLoadingContext context) {
-        var modBusGroup = context.getModBusGroup();
-
-        FMLCommonSetupEvent.getBus(modBusGroup).addListener(this::commonSetup);
-
-        BlockEvent.BreakEvent.BUS.addListener(HarvestEventHandler::MyOnBlockHarvest);
-        TickEvent.ServerTickEvent.Post.BUS.addListener(ServerTickHandler::onServerTick);
-
+        PlayerInteractEvent.RightClickBlock.BUS.addListener(HarvestHander::onHarvest);
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
-    }
-
-    private void commonSetup(final FMLCommonSetupEvent event) {
-    }
-
-    private static void addCreative(BuildCreativeModeTabContentsEvent event) {
-    }
-
-    @Mod.EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
-    public static class ClientModEvents {
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event) {
-        }
     }
 }
