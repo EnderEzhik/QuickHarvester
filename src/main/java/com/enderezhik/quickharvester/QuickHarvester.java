@@ -10,7 +10,7 @@ public final class QuickHarvester {
     public static final String MOD_ID = "quickharvester";
 
     public QuickHarvester(FMLJavaModLoadingContext context) {
-        PlayerInteractEvent.RightClickBlock.BUS.addListener(HarvestHander::onHarvest);
+        PlayerInteractEvent.RightClickBlock.BUS.addListener(HarvestHandler::onHarvest);
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 }
