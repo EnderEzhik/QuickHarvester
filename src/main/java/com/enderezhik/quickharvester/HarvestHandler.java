@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
@@ -27,7 +28,6 @@ public class HarvestHandler {
         Level level = event.getLevel();
         BlockPos targetBlockPos = event.getPos();
         InteractionHand hand = event.getHand();
-        System.out.println(hand);
 
         if (level.isClientSide()) {
             return;
@@ -40,11 +40,9 @@ public class HarvestHandler {
         }
 
         if (HarvestScheduler.tasks.containsKey(player.getUUID())) {
-            print("update lastTick");
             HarvestScheduler.tasks.get(player.getUUID()).lastTick = ServerTickCounter.currentTick;
             return;
         }
-        print("Task not contains");
 
         BlockState targetBlockState = level.getBlockState(targetBlockPos);
         Block targetBlock = targetBlockState.getBlock();
@@ -85,6 +83,24 @@ public class HarvestHandler {
             }
         }
 
+        if (player.isCrouching()) {
+            for (BlockPos blockPos : toHarvest) {
+                BlockState blockState = level.getBlockState(blockPos);
+                Block block = blockState.getBlock();
+
+                block.playerDestroy(
+                        level,
+                        player,
+                        blockPos,
+                        blockState,
+                        null,
+                        ItemStack.EMPTY
+                );
+                level.removeBlock(blockPos, false);
+            }
+            return;
+        }
+
         UUID playerUUID = player.getUUID();
 
         HarvestTask newTask = new HarvestTask(player, level);
@@ -92,21 +108,6 @@ public class HarvestHandler {
         newTask.lastTick = ServerTickCounter.currentTick;
 
         HarvestScheduler.tasks.put(playerUUID, newTask);
-        print("Task added");
-//        for (BlockPos blockPos : toHarvest) {
-//            BlockState blockState = level.getBlockState(blockPos);
-//            Block block = blockState.getBlock();
-//
-//            block.playerDestroy(
-//                    level,
-//                    player,
-//                    blockPos,
-//                    blockState,
-//                    null,
-//                    player.getMainHandItem()
-//            );
-//            level.removeBlock(blockPos, false);
-//        }
     }
 
     private static boolean isCrop(Block block) {
@@ -134,9 +135,5 @@ public class HarvestHandler {
 
             serverPlayer.sendSystemMessage(message);
         }
-    }
-
-    private static void print(String text) {
-//        System.out.println(text);
     }
 }

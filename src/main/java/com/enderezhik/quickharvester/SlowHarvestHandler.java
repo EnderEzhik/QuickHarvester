@@ -1,6 +1,5 @@
 package com.enderezhik.quickharvester;
 
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.TickEvent;
@@ -12,7 +11,6 @@ public class SlowHarvestHandler {
     @SubscribeEvent
     public static void serverTickHandler(TickEvent.ServerTickEvent.Post event) {
         if (HarvestScheduler.tasks.isEmpty()) {
-            System.out.println("tasks is empty");
             return;
         }
 
@@ -23,29 +21,20 @@ public class SlowHarvestHandler {
             HarvestTask task = entry.getValue();
             if (ServerTickCounter.currentTick - task.lastTick > 5) {
                 iterator.remove();
-                System.out.println("remove task");
                 continue;
             }
-
-            System.out.println(task.tickCooldown);
 
             if (task.tickCooldown > 0) {
                 task.tickCooldown--;
                 continue;
             }
 
-            System.out.println("Harvesting");
-
             task.tickCooldown = task.tickCooldownDefault;
-
-            System.out.println("two");
 
             if (task.queue.isEmpty()) {
                 iterator.remove();
                 continue;
             }
-
-            System.out.println("tri");
 
             var blockPos = task.queue.poll();
             BlockState blockState = task.level.getBlockState(blockPos);
@@ -62,9 +51,5 @@ public class SlowHarvestHandler {
             task.level.removeBlock(blockPos, false);
         }
         ServerTickCounter.currentTick++;
-    }
-
-    private static void print(Level level, String text) {
-        System.out.println(level.getGameTime() + " :: " + text);
     }
 }
