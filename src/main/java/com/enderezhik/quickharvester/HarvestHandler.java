@@ -7,20 +7,21 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.UUID;
 
 //@Mod.EventBusSubscriber(modid = QuickHarvester.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class HarvestHander {
+public class HarvestHandler {
     @SubscribeEvent
     public static void onHarvest(PlayerInteractEvent.RightClickBlock event) {
         Player player = event.getEntity();
@@ -35,6 +36,11 @@ public class HarvestHander {
             return;
         }
         if (!player.getMainHandItem().isEmpty()) {
+            return;
+        }
+
+        if (HarvestScheduler.tasks.containsKey(player.getUUID())) {
+            HarvestScheduler.tasks.get(player.getUUID()).lastTick = ServerTickCounter.currentTick;
             return;
         }
 
@@ -77,22 +83,31 @@ public class HarvestHander {
             }
         }
 
-        System.out.println(toHarvest.size());
+        if (player.isCrouching()) {
+            for (BlockPos blockPos : toHarvest) {
+                BlockState blockState = level.getBlockState(blockPos);
+                Block block = blockState.getBlock();
 
-        for (BlockPos blockPos : toHarvest) {
-            BlockState blockState = level.getBlockState(blockPos);
-            Block block = blockState.getBlock();
-
-            block.playerDestroy(
-                    level,
-                    player,
-                    blockPos,
-                    blockState,
-                    null,
-                    player.getMainHandItem()
-            );
-            level.removeBlock(blockPos, false);
+                block.playerDestroy(
+                        level,
+                        player,
+                        blockPos,
+                        blockState,
+                        null,
+                        ItemStack.EMPTY
+                );
+                level.removeBlock(blockPos, false);
+            }
+            return;
         }
+
+        UUID playerUUID = player.getUUID();
+
+        HarvestTask newTask = new HarvestTask(player, level);
+        newTask.queue.addAll(toHarvest.reversed());
+        newTask.lastTick = ServerTickCounter.currentTick;
+
+        HarvestScheduler.tasks.put(playerUUID, newTask);
     }
 
     private static boolean isCrop(Block block) {
