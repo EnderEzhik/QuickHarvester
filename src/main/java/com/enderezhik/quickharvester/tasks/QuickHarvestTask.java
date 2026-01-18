@@ -14,7 +14,10 @@ public class QuickHarvestTask extends IHarvestTask {
 
     @Override
     public void Harvest(java.util.Iterator<java.util.Map.Entry<java.util.UUID, IHarvestTask>> iterator) {
-        for (BlockPos blockPos : blocksToHarvest) {
+        var blocksIterator = blocksToHarvest.iterator();
+
+        while (blocksIterator.hasNext()) {
+            var blockPos = blocksIterator.next();
             BlockState blockState = level.getBlockState(blockPos);
             Block block = blockState.getBlock();
 
@@ -27,6 +30,7 @@ public class QuickHarvestTask extends IHarvestTask {
                     ItemStack.EMPTY
             );
             level.removeBlock(blockPos, false);
+            blocksIterator.remove();
         }
     }
 }

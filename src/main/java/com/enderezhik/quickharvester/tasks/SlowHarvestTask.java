@@ -2,6 +2,7 @@ package com.enderezhik.quickharvester.tasks;
 
 import com.enderezhik.quickharvester.ServerTickCounter;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -46,7 +47,7 @@ public class SlowHarvestTask extends IHarvestTask {
                 blockPos,
                 blockState,
                 null,
-                player.getMainHandItem()
+                ItemStack.EMPTY
         );
         level.removeBlock(blockPos, false);
     }
