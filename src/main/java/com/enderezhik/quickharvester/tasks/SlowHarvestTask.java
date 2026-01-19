@@ -8,8 +8,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class SlowHarvestTask extends IHarvestTask {
-    public int tickCooldownDefault = 20;
-    public int tickCooldown;
+    private final int maxSkipTicks = 10;
+    private final int tickCooldownDefault = 5;
+    private int tickCooldown;
     public long lastTick;
 
     public SlowHarvestTask(Player player, Level level) {
@@ -20,7 +21,12 @@ public class SlowHarvestTask extends IHarvestTask {
 
     @Override
     public void Harvest(java.util.Iterator<java.util.Map.Entry<java.util.UUID, IHarvestTask>> iterator) {
-        if (ServerTickCounter.currentTick - lastTick > 5) {
+        if (blocksToHarvest.isEmpty()) {
+            iterator.remove();
+            return;
+        }
+
+        if (ServerTickCounter.currentTick - lastTick > maxSkipTicks) {
             iterator.remove();
             return;
         }
@@ -31,11 +37,6 @@ public class SlowHarvestTask extends IHarvestTask {
         }
 
         tickCooldown = tickCooldownDefault;
-
-        if (blocksToHarvest.isEmpty()) {
-            iterator.remove();
-            return;
-        }
 
         var blockPos = blocksToHarvest.poll();
         BlockState blockState = level.getBlockState(blockPos);

@@ -6,9 +6,11 @@ import net.minecraftforge.fml.common.Mod;
 import com.enderezhik.quickharvester.tasks.IHarvestTask;
 
 @Mod.EventBusSubscriber(modid = QuickHarvester.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class SlowHarvestHandler {
+public class ServerTickHandler {
     @SubscribeEvent
     public static void serverTickHandler(TickEvent.ServerTickEvent.Post event) {
+        ServerTickCounter.currentTick++;
+
         if (HarvestScheduler.tasks.isEmpty()) {
             return;
         }
@@ -20,6 +22,5 @@ public class SlowHarvestHandler {
             IHarvestTask task = entry.getValue();
             task.Harvest(iterator);
         }
-        ServerTickCounter.currentTick++;
     }
 }

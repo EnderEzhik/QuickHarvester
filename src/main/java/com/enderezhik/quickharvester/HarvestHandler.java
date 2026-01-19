@@ -29,7 +29,6 @@ public class HarvestHandler {
     public static void onHarvest(PlayerInteractEvent.RightClickBlock event) {
         Player player = event.getEntity();
         Level level = event.getLevel();
-        BlockPos targetBlockPos = event.getPos();
         InteractionHand hand = event.getHand();
 
         if (level.isClientSide()) {
@@ -48,21 +47,23 @@ public class HarvestHandler {
             return;
         }
 
+        BlockPos targetBlockPos = event.getPos();
         BlockState targetBlockState = level.getBlockState(targetBlockPos);
         Block targetBlock = targetBlockState.getBlock();
+
         if (!isCrop(targetBlock)) {
             return;
         }
 
-        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-        HashSet<BlockPos> visited = new HashSet<>();
+        ArrayDeque<BlockPos> blocksToVisit = new ArrayDeque<>();
+        HashSet<BlockPos> visitedBlocks = new HashSet<>();
         ArrayList<BlockPos> toHarvest = new ArrayList<>();
 
-        queue.add(targetBlockPos);
-        visited.add(targetBlockPos);
+        blocksToVisit.add(targetBlockPos);
+        visitedBlocks.add(targetBlockPos);
 
-        while(!queue.isEmpty()) {
-            BlockPos currentBlockPos = queue.poll();
+        while(!blocksToVisit.isEmpty()) {
+            BlockPos currentBlockPos = blocksToVisit.poll();
             BlockState currentBlockState = level.getBlockState(currentBlockPos);
             Block currentBlock = currentBlockState.getBlock();
 
@@ -74,13 +75,13 @@ public class HarvestHandler {
                 for (Direction d : Direction.Plane.HORIZONTAL) {
                     BlockPos neighborBlockPos = currentBlockPos.relative(d);
 
-                    if (!visited.contains(neighborBlockPos)) {
-                        visited.add(neighborBlockPos);
+                    if (!visitedBlocks.contains(neighborBlockPos)) {
+                        visitedBlocks.add(neighborBlockPos);
 
                         BlockState neighborBlockState = level.getBlockState(neighborBlockPos);
                         Block neighborBlock = neighborBlockState.getBlock();
                         if (isCrop(neighborBlock)) {
-                            queue.add(neighborBlockPos);
+                            blocksToVisit.add(neighborBlockPos);
                         }
                     }
                 }
